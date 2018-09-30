@@ -91,12 +91,12 @@ Base.copy(strat::Strategy) = Strategy(strat.universe, strat.indicator, strat.rul
 # define matrix row iterator protocol
 # this allows us to `enumerate(EachRow(M))`
 # thereby getting the count of the iteration as well as the row
-immutable EachRow{T<:AbstractMatrix}
+struct EachRow{T<:AbstractMatrix}
     A::T
 end
-Base.start(::EachRow) = 1
-Base.next(itr::EachRow, s) = (itr.A[s,:], s+1)
-Base.done(itr::EachRow, s) = s > size(itr.A,1)
+start(::EachRow) = 1
+next(itr::EachRow, s) = (itr.A[s,:], s+1)
+done(itr::EachRow, s) = s > size(itr.A,1)
 
 #TODO: more meaningful progres information
 #TODO: parallel processing
@@ -149,4 +149,3 @@ function optimize!(strat::Strategy; samples::Int=0, seed::Int=0, verbose::Bool=t
     strat.results.optimization = [combos strat.results.optimization]
     return nothing
 end
-

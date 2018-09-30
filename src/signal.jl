@@ -11,8 +11,8 @@ struct Signal
         a::Symbol = switch.args[2]
         b::Symbol = switch.args[3]
         #pair = eval(switch.args[1])::Function => Tuple{Symbol,Symbol}(switch.args[2]::Symbol, switch.args[3]::Symbol)
-        #fun(x::TS)::BitVector = pair.first(x[pair.second[1]].values[:]::Vector, x[pair.second[2]].values[:]::Vector)
-        function fun(x::TS)::BitVector
+        #fun(x::Temporal.TS)::BitVector = pair.first(x[pair.second[1]].values[:]::Vector, x[pair.second[2]].values[:]::Vector)
+        function fun(x::Temporal.TS)::BitVector
             #fld1::Symbol = switch.args[2]
             #fld2::Symbol = switch.args[3]
             vec1::Vector = x[a].values[:]
@@ -25,7 +25,7 @@ struct Signal
     end
 end
 
-function prep_signal(signal::Signal, indicator_data::TS)::Expr
+function prep_signal(signal::Signal, indicator_data::Temporal.TS)::Expr
     local switch = copy(signal.switch)
     for i in 2:length(switch.args)
         switch.args[i] = indicator_data[switch.args[i]]

@@ -8,7 +8,7 @@ mutable struct Portfolio
     entry_price::Matrix{Float64}
     close_price::Matrix{Float64}
     pnl::Matrix{Float64}
-    idx::Vector{<:TimeType}
+    idx::Vector{<:Dates.TimeType}
     function Portfolio(universe::Universe)
         idx = get_overall_index(universe)
         quantity = weight = entry_price = close_price = pnl =

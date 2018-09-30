@@ -13,15 +13,15 @@ const SEPARATORS = ['/', '_', '.']
 mutable struct Universe
     assets::Vector{String}
     # tickers::Vector{Symbol}
-    data::Dict{String,TS}
-    from::TimeType
-    thru::TimeType
-    function Universe(assets::Vector{String}, from::TimeType=Base.Dates.Date(0), thru::TimeType=Base.Dates.today())
+    data::Dict{String,Temporal.TS}
+    from::Dates.TimeType
+    thru::Dates.TimeType
+    function Universe(assets::Vector{String}, from::Dates.TimeType=Dates.Date(0), thru::Dates.TimeType=Dates.today())
         @assert assets == unique(assets)
         # tickers = guess_tickers(assets)
-        data = Dict{String,TS}()
+        data = Dict{String,Temporal.TS}(undef)
         @inbounds for asset in assets
-            data[asset] = TS()
+            data[asset] = Temporal.TS()
         end
         return new(assets, data, from, thru)
     end
@@ -29,8 +29,8 @@ end
 
 #TODO: ensure type compatibility across variables (specifically with regard to TimeTypes)
 function gather!(universe::Universe; source::Function=Temporal.quandl, verbose::Bool=true)::Void
-    t0 = Vector{Base.Dates.Date}()
-    tN = Vector{Base.Dates.Date}()
+    t0 = Vector{Dates.Date}(undef)
+    tN = Vector{Dates.Date}(undef)
     @inbounds for asset in universe.assets
         verbose ? print("Sourcing data for asset $asset...") : nothing
         indata = source(asset)
@@ -45,8 +45,8 @@ function gather!(universe::Universe; source::Function=Temporal.quandl, verbose::
 end
 
 #FIXME: make robust to other time types
-function get_overall_index(universe::Universe)::Vector{Date}
-    idx = Vector{Date}()
+function get_overall_index(universe::Universe)::Vector{Dates.Date}
+    idx = Vector{Dates.Date}()
     for asset in universe.assets
         idx = union(idx, universe.data[asset].index)
     end

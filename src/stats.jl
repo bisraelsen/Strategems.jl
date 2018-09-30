@@ -10,5 +10,3 @@ function cum_pnl(results::Results)::Float64
     end
     return result
 end
-
-
