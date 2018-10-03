@@ -19,7 +19,7 @@ mutable struct Universe
     function Universe(assets::Vector{String}, from::Dates.TimeType=Dates.Date(0), thru::Dates.TimeType=Dates.today())
         @assert assets == unique(assets)
         # tickers = guess_tickers(assets)
-        data = Dict{String,Temporal.TS}(undef)
+        data = Dict{String,Temporal.TS}()
         @inbounds for asset in assets
             data[asset] = Temporal.TS()
         end
@@ -28,9 +28,9 @@ mutable struct Universe
 end
 
 #TODO: ensure type compatibility across variables (specifically with regard to TimeTypes)
-function gather!(universe::Universe; source::Function=Temporal.quandl, verbose::Bool=true)::Void
-    t0 = Vector{Dates.Date}(undef)
-    tN = Vector{Dates.Date}(undef)
+function gather!(universe::Universe; source::Function=Temporal.quandl, verbose::Bool=true)::Nothing
+    t0 = Vector{Dates.Date}()
+    tN = Vector{Dates.Date}()
     @inbounds for asset in universe.assets
         verbose ? print("Sourcing data for asset $asset...") : nothing
         indata = source(asset)

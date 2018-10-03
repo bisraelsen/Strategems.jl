@@ -11,6 +11,7 @@ mutable struct ParameterSet
     function ParameterSet(arg_names::Vector{Symbol},
                           arg_defaults::Vector,
                           arg_ranges::Vector=[x:x for x in arg_defaults])
+        println("HERE")
         @assert length(arg_names) == length(arg_defaults) == length(arg_ranges)
         @assert eltype.(arg_defaults) == eltype.(arg_ranges)
         arg_types::Vector{<:Type} = eltype.(arg_defaults)
