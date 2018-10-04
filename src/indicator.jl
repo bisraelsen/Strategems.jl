@@ -9,10 +9,14 @@ mutable struct Indicator
 end
 
 function calculate(indicator::Indicator, input::Temporal.TS)::Temporal.TS
-    return indicator.fun(input; generate_dict(indicator.paramset)...)
+    println("here")
+    println(methods(indicator.fun))
+    d = generate_dict(indicator.paramset)
+    println(d)
+    return indicator.fun(input; d...)
 end
 
-# function calculate!(indicator::Indicator, input::Temporal.TS)::Void
+# function calculate!(indicator::Indicator, input::Temporal.TS)::Nothing
 #     indicator.data = calculate(indicator, input)
 #     return nothing
 # end

@@ -16,8 +16,8 @@ macro rule(logic::Expr, args...)
     trigger = :($(logic.args[2]))
     #action = :($(logic.args[3])$((args...)))
     action = :($(logic.args[3]))
-    #  args_int = :($(args...)) # doesn't seem to compile with this in v1
-    return esc(:(Rule($trigger, $action, $(args...))))
+    args_int = :($(args)) # doesn't seem to compile with this in v1
+    return esc(:(Rule($trigger, $action, $args_int)))
 end
 
 →(a,b) = a ? b() : nothing

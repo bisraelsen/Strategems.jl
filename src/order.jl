@@ -30,8 +30,8 @@ abstract type T <: Real end
 
 liquidate(qty::T) = qty
 
-long(qty::T)::T = qty
-buy(qty::T)::T = qty
+long(qty::T) = qty
+buy(qty::T) = qty
 
-short(qty::T)::T = qty
-sell(qty::T)::T = qty
+short(qty::T) = qty
+sell(qty::T) = qty

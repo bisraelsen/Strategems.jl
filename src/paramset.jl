@@ -11,7 +11,6 @@ mutable struct ParameterSet
     function ParameterSet(arg_names::Vector{Symbol},
                           arg_defaults::Vector,
                           arg_ranges::Vector=[x:x for x in arg_defaults])
-        println("HERE")
         @assert length(arg_names) == length(arg_defaults) == length(arg_ranges)
         @assert eltype.(arg_defaults) == eltype.(arg_ranges)
         arg_types::Vector{<:Type} = eltype.(arg_defaults)
@@ -39,7 +38,7 @@ function get_param_combos(ps::ParameterSet; n_runs::Int=get_n_runs(ps))::Matrix
             last_row = first_row + n_vals*step_by - 1
             rows = first_row:step_by:last_row
             arg_val = ps.arg_ranges[j][i]
-            combos[rows,j] = arg_val
+            combos[rows,j] .= arg_val
         end
         P *= n_vals
     end
@@ -68,7 +67,7 @@ function generate_dict(ps::ParameterSet; arg_values::Vector=ps.arg_defaults)::Di
     return out_dict
 end
 
-function show(io::IO, ps::ParameterSet)::Void
+function show(io::IO, ps::ParameterSet)::Nothing
     print("Parameters:")
     @inbounds for i in 1:ps.n_args
         print("\n    ($i) $(ps.arg_names[i])  →  $(ps.arg_defaults[i])  ∈  {$(string(ps.arg_ranges[i]))} :: $(ps.arg_types[i])")

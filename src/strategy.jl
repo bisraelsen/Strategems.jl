@@ -1,6 +1,7 @@
 #=
 Type definition and methods containing the overarching backtesting object fueling the engine
 =#
+import Random
 
 mutable struct Strategy
     universe::Universe
@@ -16,14 +17,16 @@ mutable struct Strategy
     end
 end
 
-function generate_trades(strat::Strategy; verbose::Bool=true)::Dict{String,TS}
-    all_trades = Dict{String,TS}()
+function generate_trades(strat::Strategy; verbose::Bool=true)::Dict{String,Temporal.TS}
+    all_trades = Dict{String,Temporal.TS}()
     for asset in strat.universe.assets
         verbose ? print("Generating trades for asset $asset...") : nothing
-        trades = TS(falses(size(strat.universe.data[asset],1), length(strat.rules)),
+        trades = Temporal.TS(falses(size(strat.universe.data[asset],1), length(strat.rules)),
                     strat.universe.data[asset].index)
+        println("HERE")
         local indicator_data = calculate(strat.indicator, strat.universe.data[asset])
         for (i,rule) in enumerate(strat.rules);
+            println("here: $i")
             trades[:,i] = rule.trigger.fun(indicator_data)
         end
         all_trades[asset] = trades
@@ -32,16 +35,16 @@ function generate_trades(strat::Strategy; verbose::Bool=true)::Dict{String,TS}
     return all_trades
 end
 
-function generate_trades!(strat::Strategy; args...)::Void
+function generate_trades!(strat::Strategy; args...)::Nothing
     strat.results.trades = generate_trades(strat; args...)
     return nothing
 end
 
-function backtest(strat::Strategy; px_trade::Symbol=:Open, px_close::Symbol=:Settle, verbose::Bool=true)::Dict{String,TS{Float64}}
+function backtest(strat::Strategy; px_trade::Symbol=:Open, px_close::Symbol=:Settle, verbose::Bool=true)::Dict{String,Temporal.TS{Float64}}
     if isempty(strat.results.trades)
         generate_trades!(strat, verbose=verbose)
     end
-    result = Dict{String,TS}()
+    result = Dict{String,Temporal.TS}()
     for asset in strat.universe.assets
         verbose ? print("Running backtest for asset $asset...") : nothing
         trades = strat.results.trades[asset].values
@@ -74,14 +77,14 @@ function backtest(strat::Strategy; px_trade::Symbol=:Open, px_close::Symbol=:Set
             end
             do_trade = false
         end
-        summary_ts = [summary_ts TS([pos pnl cumsum(pnl)], summary_ts.index, [:Pos,:PNL,:CumPNL])]
+        summary_ts = [summary_ts Temporal.TS([pos pnl cumsum(pnl)], summary_ts.index, [:Pos,:PNL,:CumPNL])]
         result[asset] = summary_ts
         verbose ? print("Done.\n") : nothing
     end
     return result
 end
 
-function backtest!(strat::Strategy; args...)::Void
+function backtest!(strat::Strategy; args...)::Nothing
     strat.results.backtest = backtest(strat; args...)
     return nothing
 end
@@ -106,7 +109,7 @@ function optimize(strat::Strategy; samples::Int=0, seed::Int=0, verbose::Bool=tr
     n_runs = get_n_runs(strat.indicator.paramset)
     idx_samples::Vector{Int} = collect(1:n_runs)
     if samples > 0
-        srand(seed)
+        Random.seed!(seed)
         idx_samples = rand(idx_samples, samples)
     else
         samples = n_runs
@@ -126,12 +129,12 @@ function optimize(strat::Strategy; samples::Int=0, seed::Int=0, verbose::Bool=tr
 end
 
 # TODO: implement function to edit results member of strat in place
-function optimize!(strat::Strategy; samples::Int=0, seed::Int=0, verbose::Bool=true, summary_fun::Function=cum_pnl, args...)::Void
+function optimize!(strat::Strategy; samples::Int=0, seed::Int=0, verbose::Bool=true, summary_fun::Function=cum_pnl, args...)::Nothing
     n_runs = get_n_runs(strat.indicator.paramset)
     idx_samples::Vector{Int} = collect(1:n_runs)
     if samples > 0
         if seed >= 0
-            srand(seed)
+            Random.seed!(seed)
         end
         idx_samples = rand(idx_samples, samples)
     else
