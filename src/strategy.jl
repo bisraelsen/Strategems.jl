@@ -5,12 +5,12 @@ import Random
 
 mutable struct Strategy
     universe::Universe
-    indicator::Indicator
+    indicator::AbstractIndicator
     rules::Tuple{Vararg{Rule}}
     portfolio::Portfolio
     results::Results
     function Strategy(universe::Universe,
-                      indicator::Indicator,
+                      indicator::AbstractIndicator,
                       rules::Tuple{Vararg{Rule}},
                       portfolio::Portfolio=Portfolio(universe))
         return new(universe, indicator, rules, portfolio, Results())
@@ -23,11 +23,10 @@ function generate_trades(strat::Strategy; verbose::Bool=true)::Dict{String,Tempo
         verbose ? print("Generating trades for asset $asset...") : nothing
         trades = Temporal.TS(falses(size(strat.universe.data[asset],1), length(strat.rules)),
                     strat.universe.data[asset].index)
-        println("HERE")
         local indicator_data = calculate(strat.indicator, strat.universe.data[asset])
         for (i,rule) in enumerate(strat.rules);
-            println("here: $i")
-            trades[:,i] = rule.trigger.fun(indicator_data)
+            vals = rule.trigger.fun(indicator_data)
+            trades[:,i] = vals
         end
         all_trades[asset] = trades
         verbose ? print("Done.\n") : nothing
@@ -91,16 +90,6 @@ end
 
 Base.copy(strat::Strategy) = Strategy(strat.universe, strat.indicator, strat.rules)
 
-# define matrix row iterator protocol
-# this allows us to `enumerate(EachRow(M))`
-# thereby getting the count of the iteration as well as the row
-struct EachRow{T<:AbstractMatrix}
-    A::T
-end
-start(::EachRow) = 1
-next(itr::EachRow, s) = (itr.A[s,:], s+1)
-done(itr::EachRow, s) = s > size(itr.A,1)
-
 #TODO: more meaningful progres information
 #TODO: parallel processing
 #TODO: streamline this so that it doesnt run so slow (seems to be recompiling at each run)
@@ -142,7 +131,7 @@ function optimize!(strat::Strategy; samples::Int=0, seed::Int=0, verbose::Bool=t
     end
     combos = get_param_combos(strat.indicator.paramset, n_runs=n_runs)[idx_samples,:]
     strat.results.optimization = zeros(samples,1)
-    for (run, combo) in enumerate(EachRow(combos))
+    for (run, combo) in enumerate([combos[i,:] for i in 1:size(combos,1)])
         verbose ? println("Run $run/$samples") : nothing
         strat.indicator.paramset.arg_defaults = combo
         generate_trades!(strat, verbose=false)

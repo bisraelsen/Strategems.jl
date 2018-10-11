@@ -1,6 +1,7 @@
 import Base.show
 
-mutable struct ParameterSet
+abstract type AbstractParameterSet end
+mutable struct ParameterSet <: AbstractParameterSet
     arg_names::Vector{Symbol}
     arg_defaults::Vector
     arg_ranges::Vector
@@ -27,7 +28,7 @@ function get_n_runs(ps::ParameterSet)::Int
 end
 
 function get_param_combos(ps::ParameterSet; n_runs::Int=get_n_runs(ps))::Matrix
-    combos = Matrix{Any}(n_runs, ps.n_args)
+    combos = Matrix{Any}(undef, n_runs, ps.n_args)
     P = 1
     for j in 1:ps.n_args
         n_vals = length(ps.arg_ranges[j])
@@ -59,7 +60,7 @@ function get_run_params(ps::ParameterSet; n_runs::Int=get_n_runs(ps))::Vector{Di
     return arg_dicts
 end
 
-function generate_dict(ps::ParameterSet; arg_values::Vector=ps.arg_defaults)::Dict{Symbol,Any}
+function generate_dict(ps::AbstractParameterSet; arg_values::Vector=ps.arg_defaults)::Dict{Symbol,Any}
     out_dict = Dict{Symbol,Any}()
     for j in 1:ps.n_args
         out_dict[ps.arg_names[j]] = arg_values[j]

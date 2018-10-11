@@ -1,4 +1,5 @@
-mutable struct Indicator
+abstract type AbstractIndicator end
+mutable struct Indicator <: AbstractIndicator
     fun::Function
     paramset::ParameterSet
     data::Temporal.TS
@@ -8,15 +9,12 @@ mutable struct Indicator
     end
 end
 
-function calculate(indicator::Indicator, input::Temporal.TS)::Temporal.TS
-    println("here")
-    println(methods(indicator.fun))
+function calculate(indicator::AbstractIndicator, input::Temporal.TS)::Temporal.TS
     d = generate_dict(indicator.paramset)
-    println(d)
     return indicator.fun(input; d...)
 end
 
-# function calculate!(indicator::Indicator, input::Temporal.TS)::Nothing
+# function calculate!(indicator::AbstractIndicator, input::Temporal.TS)::Nothing
 #     indicator.data = calculate(indicator, input)
 #     return nothing
 # end
