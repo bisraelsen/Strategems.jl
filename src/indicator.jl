@@ -14,10 +14,10 @@ function calculate(indicator::AbstractIndicator, input::Temporal.TS)::Temporal.T
     return indicator.fun(input; d...)
 end
 
-# function calculate!(indicator::AbstractIndicator, input::Temporal.TS)::Nothing
-#     indicator.data = calculate(indicator, input)
-#     return nothing
-# end
+function calculate!(indicator::AbstractIndicator, input::Temporal.TS)::Nothing
+   indicator.data = calculate(indicator, input)
+   return nothing
+end
 
 function generate_dict(universe::Universe, indicator::Indicator)::Dict{String,Indicator}
     indicators = Dict{String,Indicator}()
