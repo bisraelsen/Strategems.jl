@@ -39,12 +39,12 @@ function generate_trades!(strat::Strategy; args...)::Nothing
     return nothing
 end
 
-function backtest(strat::Strategy; px_trade::Symbol=:Open, px_close::Symbol=:Settle, verbose::Bool=true)::Dict{String,Temporal.TS{Float64}}
+function backtest(strat::Strategy; verbose::Bool=true)::Dict{String,Temporal.TS{Float64}}
     if isempty(strat.results.trades)
         generate_trades!(strat, verbose=verbose)
     end
     result = Dict{String,Temporal.TS}()
-    for asset in strat.universe.assets
+    for (asset,opn_cls) in zip(strat.universe.assets,strat.universe.trade_symbols)
         verbose ? print("Running backtest for asset $asset...") : nothing
         trades = strat.results.trades[asset].values
         N = size(trades, 1)
@@ -52,6 +52,19 @@ function backtest(strat::Strategy; px_trade::Symbol=:Open, px_close::Symbol=:Set
         #TODO: add setindex! method for TS objects using Symbol and Vector to assign inplace
         #TODO: generalize this logic to incorporate order types
         #FIXME: generalize this logic to use the actual rules (this is a temporary quickfix)
+
+        # grab the right columns from the asset
+        px_trade = opn_cls[:trade_symb]
+        px_close = opn_cls[:close_symb]
+
+        # useful errors if the trade/close symbols are not found
+        if !(px_trade ∈ summary_ts.fields)
+            error("The key $px_trade, is not in $asset.\n the data has the following fields:\n $(summary_ts.fields)")
+        end
+        if !(px_close ∈ summary_ts.fields)
+            error("The key $px_close, is not in $asset.\n the data has the following fields:\n $(summary_ts.fields)")
+        end
+
         trade_price = summary_ts[px_trade].values
         close_price = summary_ts[px_close].values
         pos = zeros(Float64, N)

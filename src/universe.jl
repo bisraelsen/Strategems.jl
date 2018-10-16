@@ -4,26 +4,36 @@ Type and methods to simplify data sourcing and management of the universe of tra
 
 const SEPARATORS = ['/', '_', '.']
 
-# function guess_tickers(assets::Vector{String})::Vector{Symbol}
-#     tickers = Symbol.([Temporal.namefix(split(asset, SEPARATORS)[end]) for asset in assets])
-#     @assert tickers == unique(tickers)  "Non-unique ticker symbols found in universe"
-#     return tickers
-# end
+mutable struct Asset
+    name::String
+    props::Dict{Symbol,Symbol}
+    function Asset(name::String;props::Dict{Symbol,Symbol}=Dict(:close_symb=>:Close,:trade_symb=>:Open))
+        #TODO: put in a function to find default symbols
+        new(name,props)
+    end
+end
 
 mutable struct Universe
     assets::Vector{String}
+    trade_symbols::Vector{Dict{Symbol,Symbol}}
     # tickers::Vector{Symbol}
     data::Dict{String,Temporal.TS}
     from::Dates.TimeType
     thru::Dates.TimeType
-    function Universe(assets::Vector{String}, from::Dates.TimeType=Dates.Date(0), thru::Dates.TimeType=Dates.today())
-        @assert assets == unique(assets)
-        # tickers = guess_tickers(assets)
+    function Universe(assets::Vector{Asset}, from::Dates.TimeType=Dates.Date(0), thru::Dates.TimeType=Dates.today())
+        asset_names = Vector{String}(undef,length(assets))
+        trade_symbs= Vector{Dict{Symbol,Symbol}}(undef,length(assets))
+        for (i,ast) in enumerate(assets)
+            @info i
+            @info ast
+            asset_names[i] = ast.name
+            trade_symbs[i] = ast.props
+        end
         data = Dict{String,Temporal.TS}()
-        @inbounds for asset in assets
+        @inbounds for asset in asset_names
             data[asset] = Temporal.TS()
         end
-        return new(assets, data, from, thru)
+        return new(asset_names, trade_symbs, data, from, thru)
     end
 end
 
